@@ -4,7 +4,8 @@
   import { isConfigured } from '../lib/config';
   import { describeError } from '../lib/errors';
   import { href } from '../lib/routes';
-  import { isAdmin, session } from '../lib/session';
+  import { isAdmin, refreshProfile, session } from '../lib/session';
+  import { onMount } from 'svelte';
   import BugsScreen from './BugsScreen.svelte';
 
   type Tab = 'projects' | 'comments' | 'bugs';
@@ -16,6 +17,11 @@
   ];
 
   let tab = $state<Tab>('projects');
+
+  // Права владельца выдаются в базе; экран берёт свежую роль, а не ту, что запомнил при входе.
+  onMount(() => {
+    void refreshProfile();
+  });
 </script>
 
 <section class="section">

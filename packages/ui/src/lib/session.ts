@@ -42,15 +42,31 @@ let loadingFor: string | null = null;
 async function loadProfile(userId: string): Promise<void> {
   if (loadingFor === userId) return;
   loadingFor = userId;
-  let profile: Profile | null = null;
+  // undefined — профиль не удалось прочитать (нет сети): остаётся то, что было известно раньше.
+  let profile: Profile | null | undefined;
   try {
     profile = await fetchProfile(userId);
   } catch {
-    // Профиль не загрузился (нет сети): аккаунт всё равно считается вошедшим.
+    profile = undefined;
   } finally {
     loadingFor = null;
   }
-  store.update((state) => (state.user?.id === userId ? { ...state, ready: true, profile } : state));
+  store.update((state) =>
+    state.user?.id === userId
+      ? { ...state, ready: true, profile: profile === undefined ? state.profile : profile }
+      : state,
+  );
+}
+
+/**
+ * Перечитывает профиль из базы. Нужно приложению: оно не перезагружается между экранами,
+ * а роль могла измениться, пока оно открыто.
+ */
+export async function refreshProfile(): Promise<void> {
+  const { user, profile } = get(store);
+  // Профиль ещё не загружен — он загрузится сам, второй запрос не нужен.
+  if (!user || !profile) return;
+  await loadProfile(user.id);
 }
 
 function apply(user: SessionUser | null): void {

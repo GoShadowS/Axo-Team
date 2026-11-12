@@ -1,0 +1,28 @@
+// @ts-check
+import { defineConfig, envField } from 'astro/config';
+import svelte from '@astrojs/svelte';
+
+export default defineConfig({
+  site: 'https://axo-team.vercel.app',
+  output: 'static',
+  integrations: [svelte()],
+  server: { port: 4321 },
+  env: {
+    schema: {
+      // Оба значения публичные: они попадают в клиентский код.
+      // Секретные ключи Supabase сюда добавлять нельзя.
+      PUBLIC_SUPABASE_URL: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+        url: true,
+      }),
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+        startsWith: 'sb_publishable_',
+      }),
+    },
+  },
+});

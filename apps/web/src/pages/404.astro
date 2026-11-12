@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Страница не найдена" description="Такой страницы на сайте нет.">
+  <section class="section">
+    <div class="container">
+      <h1>Страница не найдена</h1>
+      <p class="lead">Такого адреса на сайте нет. Возможно, проект переименован или ссылка устарела.</p>
+      <p><a class="button" href="/projects/">Открыть каталог проектов</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  h1 {
+    margin: 1rem 0 0.75rem;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+  }
+</style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PROJECT_STATUS_LABEL, type ProjectSummary } from './types';
+  import { PROJECT_STATUS_LABEL, type ProjectSummary } from '../types';
 
   interface Props {
     project: ProjectSummary;
@@ -13,7 +13,9 @@
 <article class="card">
   <header>
     <p class="kind">{project.kind}</p>
-    <span class="status" data-status={project.status}>{PROJECT_STATUS_LABEL[project.status]}</span>
+    <span class="status" data-status={project.is_published ? project.status : 'draft'}>
+      {project.is_published ? PROJECT_STATUS_LABEL[project.status] : 'Скрыт'}
+    </span>
   </header>
 
   <h3><a {href}>{project.title}</a></h3>
@@ -75,6 +77,10 @@
 
   .status[data-status='experimental'] {
     color: var(--axo-warn);
+  }
+
+  .status[data-status='draft'] {
+    color: var(--axo-muted);
   }
 
   h3 {

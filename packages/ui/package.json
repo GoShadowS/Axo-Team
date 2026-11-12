@@ -1,8 +1,8 @@
 {
   "name": "@axo/ui",
   "private": true,
-  "version": "0.1.0",
-  "description": "Общие Svelte-компоненты и типы API для сайта и ПК-приложения",
+  "version": "0.2.0",
+  "description": "Общий интерфейс, аккаунты и доступ к данным для сайта и ПК-приложения",
   "type": "module",
   "svelte": "./src/index.ts",
   "types": "./src/index.ts",
@@ -12,13 +12,21 @@
       "svelte": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./tokens.css": "./src/tokens.css"
+    "./screens/*": "./src/screens/*",
+    "./components/*": "./src/components/*",
+    "./tokens.css": "./src/tokens.css",
+    "./base.css": "./src/base.css"
   },
   "files": [
     "src"
   ],
   "scripts": {
     "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "dompurify": "^3.4.16",
+    "marked": "^18.1.0"
   },
   "peerDependencies": {
     "svelte": "^5.43.6"

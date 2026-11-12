@@ -1,36 +1,8 @@
 ---
-import { ProjectCard } from '@axo/ui';
+import ProjectsScreen from '@axo/ui/screens/ProjectsScreen.svelte';
 import Base from '../../layouts/Base.astro';
-import { getProjects, projectHref, toSummary } from '../../lib/projects';
-
-const projects = await getProjects();
 ---
 
 <Base title="Проекты" description="Каталог проектов Axo-Team с описанием, документацией и ссылками.">
-  <section class="section">
-    <div class="container">
-      <h1>Проекты</h1>
-      <p class="lead">Каталог всех проектов. Откройте карточку, чтобы прочитать описание и документацию.</p>
-      <ul class="grid">
-        {
-          projects.map((entry) => (
-            <li>
-              <ProjectCard project={toSummary(entry)} href={projectHref(entry)} />
-            </li>
-          ))
-        }
-      </ul>
-    </div>
-  </section>
+  <ProjectsScreen client:load />
 </Base>
-
-<style>
-  h1 {
-    margin: 0 0 0.75rem;
-    font-size: clamp(2rem, 5vw, 2.75rem);
-  }
-
-  .lead {
-    margin: 0 0 2rem;
-  }
-</style>

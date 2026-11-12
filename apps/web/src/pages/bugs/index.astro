@@ -1,0 +1,8 @@
+---
+import BugsScreen from '@axo/ui/screens/BugsScreen.svelte';
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Баг-репорты" description="Список найденных ошибок и их статус. Здесь же можно сообщить о новой.">
+  <BugsScreen client:load />
+</Base>

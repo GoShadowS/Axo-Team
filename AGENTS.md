@@ -8,11 +8,11 @@
 
 ## Stack (locked)
 
-- API: Rust + Axum + SQLx → PostgreSQL (Supabase)
-- Web: Astro (SSG + islands на Svelte) → Cloudflare Pages
-- Desktop: Tauri 2 (тот же UI + Rust-ядро), установщик NSIS `.exe` / WiX `.msi`
-- Cache: без Redis — `moka` в процессе + HTTP-кэш/CDN
-- Local: SQLite в приложении (кэш чтения)
+- Данные и аккаунты: Supabase Free — PostgreSQL + Auth. Сайт и приложение обращаются к Supabase напрямую с публичным (publishable) ключом; всё, что можно и нельзя, решают RLS-политики в базе
+- Своего сервера (API) нет
+- Web: Astro (SSG + острова на Svelte) → Vercel
+- Desktop: Tauri 2 (тот же интерфейс в окне), установщик NSIS `.exe`. Живёт только в репозитории, никуда не выкладывается
+- Общий интерфейс: `packages/ui` — экраны, работа с аккаунтом и данными. Сайт и приложение используют одни и те же экраны
 - Менеджер пакетов: `pnpm`. Rust: stable, edition 2021
 
 Стек не меняется без явного решения владельца.
@@ -20,12 +20,11 @@
 ## Repo layout
 
 ```
-apps/web          Astro-сайт (страницы, острова Svelte)
-apps/desktop      Tauri 2 + src-tauri
-services/api      Rust: src/, migrations/, Dockerfile, render.yaml
-packages/ui       Общие Svelte-компоненты и типы API
-.github/workflows CI: тесты, сайт, установщик, релиз
-infra             docker-compose для локального Postgres
+apps/web          Astro-сайт: по одной странице на экран
+app               ПК-приложение: Vite + Svelte, src-tauri — оболочка на Rust
+packages/ui       Общий интерфейс: screens/, components/, admin/, lib/ (сессия, данные, проверки)
+db                schema.sql (таблицы, RLS, права), seed.sql, tests/
+.github/workflows CI: проверки, сайт, установщик
 docs/             Спецификации и решения (детали живут здесь, не в этом файле)
 ```
 
@@ -33,44 +32,45 @@ docs/             Спецификации и решения (детали жи�
 
 - Установка: `pnpm install`
 - Сайт локально: `pnpm --filter web dev` (порт 4321)
-- API локально: `cargo run -p api` (порт 8080, нужен `DATABASE_URL`)
-- Миграции: `sqlx migrate run --source services/api/migrations`
-- Тесты API: `cargo test -p api`; типы/линт: `cargo clippy -- -D warnings`
-- Сайт: сборка `pnpm --filter web build`, проверки `pnpm --filter web check`
-- Десктоп: `pnpm --filter desktop tauri dev`, сборка `pnpm --filter desktop tauri build`
-- Перед «готово»: `cargo clippy -- -D warnings && cargo test -p api && pnpm --filter web check`
+- Интерфейс приложения в браузере: `pnpm --filter desktop dev` (порт 1420)
+- Приложение в окне: `pnpm --filter desktop tauri dev`, установщик: `pnpm --filter desktop tauri build` (нужен Rust)
+- Сборка: `pnpm --filter web build`, `pnpm --filter desktop build`
+- Проверки типов: `pnpm -r check`
+- База: миграций нет. Изменение пишется в `db/schema.sql`, применяется в Supabase одним SQL-запросом, затем сверяется `db/tests/fingerprint.sql` и запускается `db/tests/rls.sql` (см. `db/README.md`)
+- Перед «готово»: `pnpm -r check && pnpm --filter web build && pnpm --filter desktop build`
 
 ## Hard rules
 
 1. Всегда работай в ветке `feat/<кратко>` или `fix/<кратко>`. Никогда не пуш напрямую в `main`.
 2. Коммиты — Conventional Commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`.
-3. Всегда включай RLS на новых таблицах и пиши политику в той же миграции. Никогда не оставляй таблицу без RLS.
-4. Всегда валидируй вход на границе (Axum extractors + типы). Никогда не доверяй данным клиента.
+3. Всегда включай RLS на новых таблицах и пиши политику в том же изменении `db/schema.sql`. Никогда не оставляй таблицу без RLS.
+4. Всегда валидируй вход дважды: в форме (`packages/ui/src/lib/validate.ts`) и в базе (CHECK, права на столбцы, RLS). Никогда не доверяй данным клиента: проверка в форме — для удобства, защищает только база.
 5. Секреты — только в переменных окружения (`.env`, `*.example`). Никогда не коммить ключи и не логировать их.
 6. Всегда используй существующий компонент/паттерн из соседнего файла. Никогда не изобретай новый паттерн без причины.
 7. Делай маленькие диффы: один коммит = одна законченная вещь. Не расширяй скоуп задачи.
-8. Никогда не отключай тесты, clippy, RLS или проверки ради «зелёного» результата.
+8. Никогда не отключай тесты, RLS или проверки ради «зелёного» результата.
 9. Всегда отвечай по-русски. Идентификаторы в коде — по-английски.
-10. Всегда указывай, что проверено фактически, а что не удалось проверить. Никогда не выдумывай результаты деплоя, миграции или CI.
+10. Всегда указывай, что проверено фактически, а что не удалось проверить. Никогда не выдумывай результаты деплоя, изменений базы или CI.
+11. Секретные ключи Supabase (`service_role`, `sb_secret_…`) не используются нигде: ни в коде, ни в переменных сборки. В клиентах — только publishable-ключ.
 
 ## Budget rules (0 ₽)
 
-- Только бесплатные тарифы: Supabase Free, Render Free, Cloudflare Pages, GitHub public, SQLite.
+- Только бесплатные тарифы: Supabase Free, Vercel Hobby, GitHub.
 - Никогда не предлагай платный сервис как решение. Если он нужен — дай бесплатную альтернативу.
-- Postgres — только Supabase Free. Никогда не используй бесплатный Postgres на Render (удаляется через 30 дней).
-- `/health` не обращается к БД; внешний cron (`cron-job.org`) пингует его каждые 10 минут — сервис не спит, база не встаёт на паузу.
-- Публичные страницы отдавай с кэш-заголовками: у Render 5 ГБ трафика/мес.
+- Postgres — только Supabase Free.
+- Письма Supabase на бесплатном тарифе ограничены (несколько в час). Не строй функции, которым нужна массовая рассылка.
+- Сборка под Windows в GitHub Actions в приватном репозитории тратит минуты вдвойне: установщик собирается, только когда менялись `app/` или `packages/ui/`.
 
 ## Connectors
 
 - В начале сессии проверь `github`, `supabase`, `vercel`, `google_docs` и назови, что включено.
 - Используй только ID, полученные из list/get-вызовов или от владельца. Никогда не выдумывай ID.
-- Делай сам: репозиторий, файлы, коммиты, PR, Issues, миграции и RLS в Supabase, env-переменные и деплои в Vercel, документы в Google Docs.
+- Делай сам: репозиторий, файлы, коммиты, PR, Issues, таблицы и RLS в Supabase, env-переменные и деплои в Vercel, документы в Google Docs.
 - Никогда не делай сам: регистрацию аккаунтов, OAuth-согласия, ввод платёжных данных, покупку доменов. Об этом проси владельца.
 
 ## Stop and ask before
 
-- Изменение схемы БД или существующих миграций.
+- Изменение схемы БД.
 - Правка auth, прав доступа, RLS-политик.
 - Добавление продакшн-зависимости или нового сервиса.
 - Удаление данных, `git push --force`, переписывание истории.
@@ -86,13 +86,14 @@ docs/             Спецификации и решения (детали жи�
 
 ## Definition of done
 
-- `clippy`, `cargo test -p api`, `pnpm --filter web check` проходят без ошибок.
-- Новые эндпоинты покрыты тестом; новая таблица имеет RLS-политику.
+- `pnpm -r check` и обе сборки проходят без ошибок.
+- Новая таблица имеет RLS-политику и проверку в `db/tests/rls.sql`; `db/schema.sql` совпадает с живой базой.
 - Изменение опубликовано веткой и draft-PR; в описании — что и зачем.
 - В финальном сообщении: список изменённых файлов (по одной строке на файл) и вывод проверок.
 
 ## References
 
-- Архитектура, БД, хостинг, обфускация: Google Doc «Стек проекта: Rust + Astro + Tauri 2»
+- Исходный замысел: Google Doc «Стек проекта: Rust + Astro + Tauri 2»
   https://docs.google.com/document/d/1lgaHbi1q3jO8XHwN3vn-j_WNHAF118d9TeKjuA0l9K4/edit
+  Там, где документ расходится с этим файлом и `docs/decisions.md`, действуют они.
 - Детали по фичам — в `docs/`. Не дублируй их здесь.

@@ -15,7 +15,6 @@ target/
 
 # Deploy tooling
 .vercel/
-.wrangler/
 
 # Local databases
 *.sqlite

@@ -87,6 +87,8 @@
     startSession();
     void run();
   });
+
+  const place = TARGET === 'desktop' ? 'приложение' : 'страница';
 </script>
 
 {#snippet row(title: string, what: string, check: Check)}
@@ -106,13 +108,13 @@
 <section class="section">
   <div class="container">
     <h1 class="page-title">Состояние</h1>
-    <p class="lead">Живая проверка: страница прямо сейчас обращается к серверу и показывает, что ответило.</p>
+    <p class="lead">Живая проверка: {place} прямо сейчас обращается к серверу и показывает, что ответило.</p>
 
     <ul class="stack-list" aria-live="polite">
       {@render row('Подключение', 'Адрес и публичный ключ Supabase в этой сборке', config)}
       {@render row('Аккаунты', 'Сервис входа и регистрации (Supabase Auth)', auth)}
       {@render row('База данных', 'Чтение каталога, комментариев и репортов', database)}
-      {@render row('Ваша сессия', 'Аккаунт, под которым открыта страница', account)}
+      {@render row('Ваша сессия', TARGET === 'desktop' ? 'Аккаунт, под которым открыто приложение' : 'Аккаунт, под которым открыта страница', account)}
     </ul>
 
     <div class="actions foot">

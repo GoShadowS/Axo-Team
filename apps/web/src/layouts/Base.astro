@@ -1,0 +1,183 @@
+---
+import '@axo/ui/tokens.css';
+import '../styles/global.css';
+import { ServiceStatus } from '@axo/ui';
+import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from 'astro:env/client';
+import Logo from '../components/Logo.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const SITE_NAME = 'Axo-Team';
+const DEFAULT_DESCRIPTION =
+  'Проекты Axo-Team: моды для Minecraft, игра для Roblox и Android-приложение.';
+
+const { title, description = DEFAULT_DESCRIPTION } = Astro.props;
+const pageTitle = title ? `${title} — ${SITE_NAME}` : SITE_NAME;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+const nav = [
+  { href: '/', label: 'Главная' },
+  { href: '/projects/', label: 'Проекты' },
+];
+
+const isCurrent = (href: string) =>
+  href === '/' ? Astro.url.pathname === '/' : Astro.url.pathname.startsWith(href);
+
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0d1017" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="ru_RU" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">К содержанию</a>
+
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="/">
+          <Logo />
+          <span>{SITE_NAME}</span>
+        </a>
+        <nav aria-label="Основная навигация">
+          <ul>
+            {
+              nav.map((item) => (
+                <li>
+                  <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer__inner">
+        <p>© {year} {SITE_NAME}</p>
+        <div class="site-footer__meta">
+          {
+            PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_PUBLISHABLE_KEY && (
+              <ServiceStatus
+                client:idle
+                supabaseUrl={PUBLIC_SUPABASE_URL}
+                publishableKey={PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+              />
+            )
+          }
+          <a href="https://github.com/GoShadowS" rel="noopener">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: color-mix(in srgb, var(--axo-bg) 85%, transparent);
+    border-bottom: 1px solid var(--axo-border);
+    backdrop-filter: blur(10px);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3.75rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--axo-text);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+  }
+
+  nav ul {
+    display: flex;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  nav a {
+    display: block;
+    padding: 0.375rem 0.75rem;
+    border-radius: 999px;
+    color: var(--axo-muted);
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    color: var(--axo-text);
+  }
+
+  nav a[aria-current='page'] {
+    background: var(--axo-surface-raised);
+    color: var(--axo-text);
+  }
+
+  main {
+    flex: 1;
+  }
+
+  .site-footer {
+    margin-top: 3rem;
+    border-top: 1px solid var(--axo-border);
+    color: var(--axo-muted);
+    font-size: 0.875rem;
+  }
+
+  .site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    padding-block: 1.25rem;
+  }
+
+  .site-footer p {
+    margin: 0;
+  }
+
+  .site-footer__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+  }
+</style>

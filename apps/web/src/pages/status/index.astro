@@ -1,0 +1,8 @@
+---
+import StatusScreen from '@axo/ui/screens/StatusScreen.svelte';
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Состояние" description="Живая проверка: отвечают ли сервис аккаунтов и база данных Axo-Team.">
+  <StatusScreen client:load />
+</Base>

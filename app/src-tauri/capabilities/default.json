@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Права главного окна: базовые возможности окна и открытие ссылок (http, https, mailto, tel) в браузере пользователя. Чтения и записи файлов, а также запуска программ у интерфейса нет.",
+  "windows": ["main"],
+  "permissions": ["core:default", "opener:default"]
+}
